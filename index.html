@@ -2,25 +2,29 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Frise chronologique interactive</title>
+<title>Frise chronologique – Arts plastiques</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  padding: 40px;
+  padding: 30px;
+}
+
+#controls {
+  margin-bottom: 20px;
 }
 
 #timeline {
   position: relative;
-  width: 100%;
   height: 200px;
   border-top: 4px solid black;
-  margin-top: 80px;
+  margin-top: 60px;
 }
 
 .event {
   position: absolute;
-  top: -80px;
+  top: -90px;
+  text-align: center;
   cursor: pointer;
 }
 
@@ -33,8 +37,7 @@ body {
 #popup {
   display: none;
   position: fixed;
-  top: 50%;
-  left: 50%;
+  inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
   background: white;
   border: 2px solid black;
@@ -45,7 +48,6 @@ body {
 
 #popup img {
   width: 100%;
-  margin-bottom: 10px;
 }
 
 #overlay {
@@ -57,9 +59,8 @@ body {
 }
 
 .close {
-  cursor: pointer;
   text-align: right;
-  font-weight: bold;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -68,71 +69,96 @@ body {
 
 <h1>Frise chronologique – Arts plastiques</h1>
 
+<div id="controls">
+  <input type="number" id="year" placeholder="Année (ex: -500, 1917)">
+  <input type="text" id="title" placeholder="Titre de l’œuvre">
+  <input type="text" id="artist" placeholder="Artiste">
+  <input type="file" id="image">
+  <button onclick="addEvent()">Ajouter l’œuvre</button>
+</div>
+
 <div id="timeline"></div>
 
 <div id="overlay"></div>
 
 <div id="popup">
   <div class="close" onclick="closePopup()">✖</div>
-  <img id="popup-img">
-  <div id="popup-date"></div>
-  <div id="popup-title"></div>
-  <div id="popup-artist"></div>
+  <img id="popupImg">
+  <p id="popupYear"></p>
+  <p id="popupTitle"></p>
+  <p id="popupArtist"></p>
 </div>
 
 <script>
 const startYear = -2000;
 const endYear = 2026;
 
-const events = [
-  {
-    year: -1500,
-    title: "Peintures rupestres",
-    artist: "Anonyme",
-    image: "images/lascaux.jpg"
-  },
-  {
-    year: 1503,
-    title: "La Joconde",
-    artist: "Léonard de Vinci",
-    image: "images/joconde.jpg"
-  }
-];
+let events = JSON.parse(localStorage.getItem("events")) || [];
 
 const timeline = document.getElementById("timeline");
-const timelineWidth = timeline.offsetWidth;
 
-events.forEach(event => {
-  const position =
-    ((event.year - startYear) / (endYear - startYear)) * timelineWidth;
+function save() {
+  localStorage.setItem("events", JSON.stringify(events));
+}
 
-  const div = document.createElement("div");
-  div.className = "event";
-  div.style.left = `${position}px`;
+function render() {
+  timeline.innerHTML = "";
+  const width = timeline.offsetWidth;
 
-  div.innerHTML = `<img src="${event.image}">`;
+  events.forEach((e, index) => {
+    const x = ((e.year - startYear) / (endYear - startYear)) * width;
 
-  div.onclick = () => openPopup(event);
+    const div = document.createElement("div");
+    div.className = "event";
+    div.style.left = `${x}px`;
 
-  timeline.appendChild(div);
-});
+    div.innerHTML = `<img src="${e.image}"><br>${e.year}`;
 
-function openPopup(event) {
-  document.getElementById("popup-img").src = event.image;
-  document.getElementById("popup-date").innerHTML = `<strong>${event.year}</strong>`;
-  document.getElementById("popup-title").innerHTML = event.title;
-  document.getElementById("popup-artist").innerHTML = `<em>${event.artist}</em>`;
+    div.onclick = () => openPopup(e);
 
-  document.getElementById("popup").style.display = "block";
-  document.getElementById("overlay").style.display = "block";
+    timeline.appendChild(div);
+  });
+}
+
+function addEvent() {
+  const year = document.getElementById("year").value;
+  const title = document.getElementById("title").value;
+  const artist = document.getElementById("artist").value;
+  const file = document.getElementById("image").files[0];
+
+  if (!year || !file) return alert("Année et image obligatoires");
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    events.push({
+      year: Number(year),
+      title,
+      artist,
+      image: reader.result
+    });
+    save();
+    render();
+  };
+  reader.readAsDataURL(file);
+}
+
+function openPopup(e) {
+  popupImg.src = e.image;
+  popupYear.textContent = e.year;
+  popupTitle.textContent = e.title;
+  popupArtist.textContent = e.artist;
+  popup.style.display = "block";
+  overlay.style.display = "block";
 }
 
 function closePopup() {
-  document.getElementById("popup").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
+  popup.style.display = "none";
+  overlay.style.display = "none";
 }
 
-document.getElementById("overlay").onclick = closePopup;
+overlay.onclick = closePopup;
+
+render();
 </script>
 
 </body>
