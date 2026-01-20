@@ -1,156 +1,58 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Frise artistique interactive</title>
-
-<style>
-body {
-  margin: 0;
-  display: flex;
-  font-family: Arial, sans-serif;
-}
-
-#panel {
-  width: 320px;
-  padding: 15px;
-  border-right: 2px solid #ccc;
-}
-
-#timelineWrapper {
-  overflow-x: scroll;
-  width: 100%;
-}
-
-#timeline {
-  position: relative;
-  height: 300px;
-  width: 5000px;
-  border-top: 4px solid black;
-  margin-top: 120px;
-}
-
-.tick {
-  position: absolute;
-  top: 0;
-  height: 10px;
-  border-left: 1px solid black;
-}
-
-.tick.major {
-  height: 20px;
-  font-size: 12px;
-}
-
-.event {
-  position: absolute;
-  cursor: pointer;
-}
-
-.event img {
-  display: block;
-}
-
-.period {
-  position: absolute;
-  height: 20px;
-  opacity: 0.7;
-}
-</style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Frise Chronologique Interactif</title>
+<link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-
-<div id="panel">
-  <h3>Ajouter</h3>
-
-  <select id="type">
-    <option value="event">Événement</option>
-    <option value="period">Courant artistique</option>
-  </select><br><br>
-
-  <input id="year" type="number" placeholder="Année"><br><br>
-  <input id="endYear" type="number" placeholder="Fin (courant)"><br><br>
-
-  <input id="title" placeholder="Titre / Nom"><br><br>
-
-  <input type="color" id="color"><br><br>
-
-  Épaisseur / taille<br>
-  <input type="range" id="size" min="10" max="80"><br><br>
-
-  Hauteur<br>
-  <input type="range" id="height" min="-150" max="150"><br><br>
-
-  Image (événement)<br>
-  <input type="file" id="image"><br><br>
-
-  <button onclick="addObject()">Ajouter</button>
+<!-- Menu latéral -->
+<div id="menu">
+  <h2>Paramètres</h2>
+  <div>
+    <label>Année de début: <input type="number" id="startYear" value="1900" /></label>
+  </div>
+  <div>
+    <label>Année de fin: <input type="number" id="endYear" value="2000" /></label>
+  </div>
+  <div>
+    <label>Graduation: <input type="number" id="scale" value="50" /> ans</label>
+  </div>
+  <div>
+    <button onclick="generateFrise()">Générer la frise</button>
+  </div>
+  <hr />
+  <h3>Ajouter un événement</h3>
+  <div>
+    <label>Nom: <input type="text" id="eventName" /></label>
+  </div>
+  <div>
+    <label>Date: <input type="number" id="eventYear" /></label>
+  </div>
+  <div>
+    <label>Image: <input type="file" id="eventImage" accept="image/*" /></label>
+  </div>
+  <button onclick="addEvent()">Ajouter Événement</button>
+  <hr />
+  <h3>Ajouter une période</h3>
+  <div>
+    <label>Début: <input type="number" id="periodStart" /></label>
+  </div>
+  <div>
+    <label>Fin: <input type="number" id="periodEnd" /></label>
+  </div>
+  <div>
+    <label>Couleur: <input type="color" id="periodColor" value="#ff0000" /></label>
+  </div>
+  <button onclick="addPeriod()">Ajouter Période</button>
 </div>
 
-<div id="timelineWrapper">
-  <div id="timeline"></div>
+<!-- Zone de la frise -->
+<div id="frise-container">
+  <canvas id="timeline" width="1500" height="600"></canvas>
 </div>
 
-<script>
-const startYear = 1800;
-const endYear = 2000;
-const pixelsPerYear = 5;
-
-const timeline = document.getElementById("timeline");
-
-function drawScale() {
-  for (let y = startYear; y <= endYear; y++) {
-    const x = (y - startYear) * pixelsPerYear;
-    const tick = document.createElement("div");
-    tick.className = "tick" + (y % 10 === 0 ? " major" : "");
-    tick.style.left = x + "px";
-    tick.style.top = "-20px";
-
-    if (y % 10 === 0) tick.innerText = y;
-    timeline.appendChild(tick);
-  }
-}
-
-drawScale();
-
-function addObject() {
-  const type = typeEl.value;
-  const year = +yearEl.value;
-  const end = +endYearEl.value;
-  const title = titleEl.value;
-  const color = colorEl.value;
-  const size = +sizeEl.value;
-  const y = +heightEl.value;
-
-  if (type === "event") {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const div = document.createElement("div");
-      div.className = "event";
-      div.style.left = (year - startYear) * pixelsPerYear + "px";
-      div.style.top = y + "px";
-
-      div.innerHTML = `<img src="${reader.result}" style="width:${size}px"><br>${title}`;
-      timeline.appendChild(div);
-    };
-    reader.readAsDataURL(image.files[0]);
-  }
-
-  if (type === "period") {
-    const div = document.createElement("div");
-    div.className = "period";
-    div.style.left = (year - startYear) * pixelsPerYear + "px";
-    div.style.width = (end - year) * pixelsPerYear + "px";
-    div.style.top = y + "px";
-    div.style.height = size + "px";
-    div.style.background = color;
-    div.innerText = title;
-
-    timeline.appendChild(div);
-  }
-}
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
