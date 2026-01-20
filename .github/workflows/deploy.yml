@@ -16,6 +16,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
+      - name: Debug workspace
+        run: |
+          pwd
+          ls -la
+          echo "---- package-lock.json ----"
+          ls -la package-lock.json || true
 
       - name: Setup Node
         uses: actions/setup-node@v4
